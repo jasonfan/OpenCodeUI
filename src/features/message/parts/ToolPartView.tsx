@@ -121,7 +121,7 @@ export const ToolPartView = memo(function ToolPartView({
     permissionResolved ||
     (immersiveMode && descriptive && isStreaming && isReadable)
 
-  const [expanded, setExpanded] = useState(() => shouldStartExpanded)
+  const [expanded, setExpanded] = useState(() => shouldStartExpanded || globalMessageDisplay === 'expanded')
   const hasAutoExpandedReadableRef = useRef(shouldStartExpanded && immersiveMode && descriptive && isReadable)
   const effectiveExpanded = expanded || hasPendingInteraction || permissionResolved
   const shouldRenderBody = useDelayedRender(effectiveExpanded)
