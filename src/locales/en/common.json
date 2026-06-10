@@ -66,5 +66,7 @@
   "upDownSelect": "↑↓ select",
   "enterRun": "↵ run",
   "enterConfirmShort": "↵ confirm",
-  "escCancel": "esc cancel"
+  "escCancel": "esc cancel",
+  "copyPath": "Copy Path",
+  "copiedPath": "Path copied!"
 }

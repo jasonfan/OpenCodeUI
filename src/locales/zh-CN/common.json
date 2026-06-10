@@ -66,5 +66,7 @@
   "upDownSelect": "↑↓ 选择",
   "enterRun": "↵ 执行",
   "enterConfirmShort": "↵ 确认",
-  "escCancel": "Esc 取消"
+  "escCancel": "Esc 取消",
+  "copyPath": "复制路径",
+  "copiedPath": "路径已复制!"
 }

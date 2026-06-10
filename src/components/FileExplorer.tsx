@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { useFileExplorer, type FileTreeNode } from '../hooks'
 import { useVerticalSplitResize } from '../hooks/useVerticalSplitResize'
 import { layoutStore, type PreviewFile } from '../store/layoutStore'
-import { ChevronRightIcon, ChevronDownIcon, RetryIcon, AlertCircleIcon, DownloadIcon, MaximizeIcon } from './Icons'
+import { ChevronRightIcon, ChevronDownIcon, RetryIcon, AlertCircleIcon, DownloadIcon, MaximizeIcon, CopyIcon } from './Icons'
 import { CodePreview } from './CodePreview'
 import { FullscreenViewer } from './FullscreenViewer'
 import { PreviewTabsBar, type PreviewTabsBarItem } from './PreviewTabsBar'
@@ -27,6 +27,8 @@ import {
   type PreviewCategory,
 } from '../utils/mimeUtils'
 import { downloadFileContent } from '../utils/downloadUtils'
+import { copyTextToClipboard } from '../utils/clipboard'
+import { ContextMenu } from './ui/ContextMenu'
 import type { FileContent } from '../api/types'
 import { startInternalDrag } from '../lib/internalDragCore'
 
@@ -290,10 +292,14 @@ const FileTreeItem = memo(function FileTreeItem({
   fileStatus,
   onClick,
 }: FileTreeItemProps) {
+  const { t } = useTranslation(['common'])
   const isExpanded = expandedPaths.has(node.path)
   const isDirectory = node.type === 'directory'
   // node.path 可能用反斜杠（Windows），statusMap key 统一用正斜杠
   const status = fileStatus.get(node.path) || fileStatus.get(node.path.replace(/\\/g, '/'))
+
+  // 右键菜单状态
+  const [contextMenuPos, setContextMenuPos] = useState<{ x: number; y: number } | null>(null)
 
   // 状态颜色
   const statusColor = useMemo(() => {
@@ -324,11 +330,28 @@ const FileTreeItem = memo(function FileTreeItem({
     [node.path, node.absolute, node.name, isDirectory],
   )
 
+  // 右键菜单
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setContextMenuPos({ x: e.clientX, y: e.clientY })
+  }, [])
+
+  // 复制路径
+  const handleCopyPath = useCallback(async () => {
+    try {
+      await copyTextToClipboard(node.absolute)
+    } catch (error) {
+      console.error('Failed to copy path:', error)
+    }
+  }, [node.absolute])
+
   return (
     <div>
       <button
         onPointerDown={handlePointerDragStart}
         onClick={() => onClick(node)}
+        onContextMenu={handleContextMenu}
         className={`
           w-full flex items-center gap-1 px-2 py-0.5 text-left cursor-default
           select-none hover:bg-bg-200/50 transition-colors text-[length:var(--fs-sm)]
@@ -369,6 +392,22 @@ const FileTreeItem = memo(function FileTreeItem({
           <span className="w-3 h-3 border border-text-400 border-t-transparent rounded-full animate-spin shrink-0" />
         )}
       </button>
+
+      {/* Context Menu */}
+      {contextMenuPos && (
+        <ContextMenu
+          x={contextMenuPos.x}
+          y={contextMenuPos.y}
+          items={[
+            {
+              label: t('copyPath'),
+              icon: <CopyIcon size={14} />,
+              onClick: handleCopyPath,
+            },
+          ]}
+          onClose={() => setContextMenuPos(null)}
+        />
+      )}
 
       {/* Children */}
       {isDirectory && isExpanded && node.children && (

@@ -3,7 +3,7 @@ import { flushSync } from 'react-dom'
 import { THEME_SWITCH_DISABLE_MS } from '../constants'
 import { themeStore, type ColorMode } from '../store/themeStore'
 import type { StepFinishDisplay, CustomCSSSnippet } from '../store/themeStore'
-import type { ReasoningDisplayMode, DiffStyle, ToolCardStyle, CompletedAtFormat, ExternalFileDropMode } from '../store/themeStore'
+import type { ReasoningDisplayMode, DiffStyle, ToolCardStyle, CompletedAtFormat, ExternalFileDropMode, GlobalMessageDisplay } from '../store/themeStore'
 
 // 保持向后兼容的类型别名
 export type ThemeMode = ColorMode
@@ -314,5 +314,17 @@ export function useTheme() {
     // 外部文件拖拽模式
     externalFileDropMode: state.externalFileDropMode,
     setExternalFileDropMode,
+
+    // 消息完成后自动折叠
+    autoCollapseMessages: state.autoCollapseMessages,
+    setAutoCollapseMessages: useCallback((enabled: boolean) => {
+      themeStore.setAutoCollapseMessages(enabled)
+    }, []),
+
+    // 全局消息展示覆盖
+    globalMessageDisplay: state.globalMessageDisplay,
+    setGlobalMessageDisplay: useCallback((mode: GlobalMessageDisplay) => {
+      themeStore.setGlobalMessageDisplay(mode)
+    }, []),
   }
 }

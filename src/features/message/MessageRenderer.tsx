@@ -567,7 +567,7 @@ const ToolGroup = memo(function ToolGroup({
   completedAt,
 }: ToolGroupProps) {
   const { t } = useTranslation('message')
-  const { descriptiveToolSteps, inlineToolRequests, immersiveMode } = useTheme()
+  const { descriptiveToolSteps, inlineToolRequests, immersiveMode, autoCollapseMessages, globalMessageDisplay } = useTheme()
   const { pendingPermissions, pendingQuestions } = useInlineToolRequests()
   const hasPendingInteraction =
     inlineToolRequests &&
@@ -616,10 +616,27 @@ const ToolGroup = memo(function ToolGroup({
   const hasAutoExpandedReadableRef = useRef(shouldStartExpanded && immersiveMode && hasReadableTools)
 
   useEffect(() => {
-    if (!descriptiveToolSteps) return
+    if (globalMessageDisplay === 'expanded') {
+      setExpanded(true)
+      return
+    }
+    if (globalMessageDisplay === 'collapsed') {
+      setExpanded(false)
+      return
+    }
+    // autoCollapseMessages 关闭时，始终展开
+    if (!autoCollapseMessages) {
+      setExpanded(true)
+      return
+    }
+    if (!descriptiveToolSteps) {
+      if (autoCollapseMessages && isAllDone && !isStreaming) {
+        setExpanded(false)
+      }
+      return
+    }
     // 沉浸模式下没有可读工具：始终收起，不展开
-    if (immersiveMode && !hasReadableTools) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- 沉浸模式联动
+    if (autoCollapseMessages && immersiveMode && !hasReadableTools) {
       setExpanded(false)
       return
     }
@@ -630,12 +647,11 @@ const ToolGroup = memo(function ToolGroup({
       setExpanded(true)
       return
     }
-    // 某些可读工具（如 todo）可能首帧已完成，错过 running 态；流仍在继续时也自动展开一次
     if (immersiveMode && isStreaming && hasReadableTools && !hasAutoExpandedReadableRef.current) {
       hasAutoExpandedReadableRef.current = true
       setExpanded(true)
     }
-  }, [descriptiveToolSteps, hasActiveTools, hasPendingInteraction, immersiveMode, hasReadableTools, isStreaming])
+  }, [descriptiveToolSteps, hasActiveTools, hasPendingInteraction, immersiveMode, hasReadableTools, isStreaming, autoCollapseMessages, isAllDone, globalMessageDisplay])
 
   const effectiveExpanded = expanded || hasPendingInteraction
   const shouldRenderBody = useDelayedRender(effectiveExpanded)
