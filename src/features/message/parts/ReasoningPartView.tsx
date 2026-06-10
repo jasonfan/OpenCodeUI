@@ -17,7 +17,7 @@ interface ReasoningPartViewProps {
 
 export const ReasoningPartView = memo(function ReasoningPartView({ part, isStreaming }: ReasoningPartViewProps) {
   const { t } = useTranslation('message')
-  const { reasoningDisplayMode } = useTheme()
+  const { reasoningDisplayMode, autoCollapseMessages, globalMessageDisplay } = useTheme()
   const rawText = part.text || ''
 
   const isPartStreaming = isStreaming && !part.time?.end
@@ -56,11 +56,19 @@ export const ReasoningPartView = memo(function ReasoningPartView({ part, isStrea
   useEffect(() => {
     let frameId: number | null = null
 
-    if (isPartStreaming && hasContent) {
+    if (globalMessageDisplay === 'expanded') {
       frameId = requestAnimationFrame(() => {
         setExpanded(true)
       })
-    } else if (!isPartStreaming) {
+    } else if (globalMessageDisplay === 'collapsed') {
+      frameId = requestAnimationFrame(() => {
+        setExpanded(false)
+      })
+    } else if (isPartStreaming && hasContent) {
+      frameId = requestAnimationFrame(() => {
+        setExpanded(true)
+      })
+    } else if (!isPartStreaming && autoCollapseMessages) {
       frameId = requestAnimationFrame(() => {
         setExpanded(false)
       })
@@ -69,7 +77,7 @@ export const ReasoningPartView = memo(function ReasoningPartView({ part, isStrea
     return () => {
       if (frameId !== null) cancelAnimationFrame(frameId)
     }
-  }, [isPartStreaming, hasContent])
+  }, [isPartStreaming, hasContent, autoCollapseMessages, globalMessageDisplay])
 
   useEffect(() => {
     if (reasoningDisplayMode !== 'capsule') return

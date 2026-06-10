@@ -14,6 +14,7 @@ export function ChatSettings() {
   const [stepFinishDisplay, setStepFinishDisplay] = useState(themeStore.stepFinishDisplay)
   const [completedAtFormat, setCompletedAtFormat] = useState(themeStore.completedAtFormat)
   const [reasoningDisplayMode, setReasoningDisplayMode] = useState(themeStore.reasoningDisplayMode)
+  const [autoCollapseMessages, setAutoCollapseMessages] = useState(themeStore.autoCollapseMessages)
   const isMobile = useIsMobile()
   void isMobile
 
@@ -75,6 +76,25 @@ export function ChatSettings() {
           onClick={handleCollapseToggle}
         >
           <Toggle enabled={collapseUserMessages} onChange={handleCollapseToggle} />
+        </SettingRow>
+
+        <SettingRow
+          label={t('chat.autoCollapseMessages')}
+          description={t('chat.autoCollapseMessagesDesc')}
+          onClick={() => {
+            const v = !autoCollapseMessages
+            setAutoCollapseMessages(v)
+            themeStore.setAutoCollapseMessages(v)
+          }}
+        >
+          <Toggle
+            enabled={autoCollapseMessages}
+            onChange={() => {
+              const v = !autoCollapseMessages
+              setAutoCollapseMessages(v)
+              themeStore.setAutoCollapseMessages(v)
+            }}
+          />
         </SettingRow>
 
         <div>

@@ -62,7 +62,7 @@ export const ToolPartView = memo(function ToolPartView({
   const endTime = state.time?.end ?? (isActive ? (calibratedNow ?? now) : undefined)
   const rawDuration = startTime !== undefined && endTime !== undefined ? endTime - startTime : undefined
   const duration = rawDuration !== undefined && isActive ? Math.max(0, rawDuration) : rawDuration
-  const { inlineToolRequests, immersiveMode, compactInlinePermission } = useTheme()
+  const { inlineToolRequests, immersiveMode, compactInlinePermission, autoCollapseMessages, globalMessageDisplay } = useTheme()
 
   const { pendingPermissions, pendingQuestions, onPermissionReply, onQuestionReply, onQuestionReject, isReplying } =
     useInlineToolRequests()
@@ -129,28 +129,45 @@ export const ToolPartView = memo(function ToolPartView({
   useEffect(() => {
     let frameId: number | null = null
 
-    if (isActive || hasPendingInteraction || permissionResolved) {
+    if (globalMessageDisplay === 'expanded') {
+      frameId = requestAnimationFrame(() => {
+        setExpanded(true)
+      })
+    } else if (globalMessageDisplay === 'collapsed') {
+      frameId = requestAnimationFrame(() => {
+        setExpanded(false)
+      })
+    } else if (!autoCollapseMessages) {
+      // autoCollapseMessages 关闭时，始终展开
+      frameId = requestAnimationFrame(() => {
+        setExpanded(true)
+      })
+    } else if (isActive || hasPendingInteraction || permissionResolved) {
       if (immersiveMode && descriptive && isReadable) {
         hasAutoExpandedReadableRef.current = true
       }
       frameId = requestAnimationFrame(() => {
         setExpanded(true)
       })
-    } else if (immersiveMode && descriptive && !isReadable) {
+    } else if (autoCollapseMessages && immersiveMode && descriptive && !isReadable) {
       frameId = requestAnimationFrame(() => {
         setExpanded(false)
       })
-    } else if (immersiveMode && descriptive && isStreaming && isReadable && !hasAutoExpandedReadableRef.current) {
+    } else if (autoCollapseMessages && immersiveMode && descriptive && isStreaming && isReadable && !hasAutoExpandedReadableRef.current) {
       hasAutoExpandedReadableRef.current = true
       frameId = requestAnimationFrame(() => {
         setExpanded(true)
+      })
+    } else if (autoCollapseMessages && !isStreaming) {
+      frameId = requestAnimationFrame(() => {
+        setExpanded(false)
       })
     }
 
     return () => {
       if (frameId !== null) cancelAnimationFrame(frameId)
     }
-  }, [isActive, hasPendingInteraction, permissionResolved, immersiveMode, descriptive, isStreaming, isReadable])
+  }, [isActive, hasPendingInteraction, permissionResolved, immersiveMode, descriptive, isStreaming, isReadable, autoCollapseMessages, globalMessageDisplay])
 
   // Shared icon element
   const toolIcon = (
