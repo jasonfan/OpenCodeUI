@@ -24,7 +24,7 @@ export const ReasoningPartView = memo(function ReasoningPartView({ part, isStrea
   const hasContent = !!rawText.trim()
 
   const displayText = rawText
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(globalMessageDisplay === 'expanded')
   const shouldRenderBody = useDelayedRender(expanded)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const summaryContainerRef = useRef<HTMLDivElement>(null)
