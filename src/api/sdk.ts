@@ -142,12 +142,25 @@ export function invalidateSDKClient(): void {
  * SDK 默认返回 { data, error, request, response }
  * 我们的上层 API 函数期望直接返回数据，所以需要 unwrap
  */
+function extractErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message
+  if (typeof err === 'string') return err
+  if (typeof err === 'object' && err !== null) {
+    const obj = err as Record<string, unknown>
+    if (typeof obj.data === 'object' && obj.data !== null) {
+      const data = obj.data as Record<string, unknown>
+      if (typeof data.message === 'string') return data.message
+    }
+    if (typeof obj.message === 'string') return obj.message
+  }
+  return JSON.stringify(err)
+}
+
 export function unwrap<T>(result: { data?: T; error?: unknown }): T {
   if (result.error != null) {
     const err = result.error
     if (err instanceof Error) throw err
-    if (typeof err === 'string') throw new Error(err)
-    throw new Error(JSON.stringify(err))
+    throw new Error(extractErrorMessage(err))
   }
   return result.data as T
 }

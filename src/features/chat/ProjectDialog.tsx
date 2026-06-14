@@ -168,7 +168,7 @@ export function ProjectDialog({ isOpen, onClose, onSelect, initialPath = '' }: P
         .catch(err => {
           if (cancelled || requestId !== requestIdRef.current) return
           fileErrorHandler('list directory', err)
-          setError(err.message)
+          setError(err instanceof Error ? err.message : String(err))
           setItems([])
           loadedPathRef.current = ''
         })

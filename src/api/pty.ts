@@ -47,7 +47,7 @@ export async function listPtySessions(directory?: string): Promise<Pty[]> {
  */
 export async function listAvailableShells(directory?: string): Promise<ShellInfo[]> {
   const sdk = getSDKClient()
-  return unwrap(await sdk.pty.shells({ directory: formatPathForApi(directory) }))
+  return unwrap(await (sdk as any).pty.shells({ directory: formatPathForApi(directory) }))
 }
 
 /**
