@@ -20,18 +20,19 @@ pub fn get_cli_directory(
     state.pending().pin().remove(window.label()).cloned()
 }
 
-/// 新建桌面窗口
-#[cfg(not(target_os = "android"))]
-#[tauri::command]
-pub async fn open_new_window(app: tauri::AppHandle, directory: Option<String>) {
-    crate::app::create_new_window(&app, directory);
-}
-
-/// 桌面窗口前端首帧完成后，通知 Rust 显示真实窗口并关闭 loading 窗口
+/// 桌面窗口前端首帧完成后，聚焦窗口
 #[cfg(not(target_os = "android"))]
 #[tauri::command]
 pub fn desktop_window_ready(window: tauri::Window) -> Result<(), String> {
-    crate::app::mark_window_ready(&window).map_err(|err| err.to_string())
+    let _ = window.set_focus();
+    Ok(())
+}
+
+/// 多实例模式下，不再支持在进程内打开新窗口
+#[cfg(not(target_os = "android"))]
+#[tauri::command]
+pub async fn open_new_window(_app: tauri::AppHandle, _directory: Option<String>) {
+    log::info!("open_new_window is a no-op in multi-instance mode");
 }
 
 /// 获取拖入路径的基础信息，用于前端区分文件/目录并生成 @ 引用。
