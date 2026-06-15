@@ -23,6 +23,12 @@ function getRootDirectoryCacheKey(directory?: string): string {
 
 async function fetchDirectory(path: string, directory?: string): Promise<FileNode[]> {
   const sdk = getSDKClient()
+  const isAbsolute = /^[a-zA-Z]:/.test(path) || path.startsWith('/')
+
+  if (isAbsolute && !directory) {
+    return unwrap(await sdk.file.list({ directory: formatPathForApi(path), path: '' }))
+  }
+
   return unwrap(await sdk.file.list({ path, directory: formatPathForApi(directory) }))
 }
 
